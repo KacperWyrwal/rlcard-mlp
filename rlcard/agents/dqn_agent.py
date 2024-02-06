@@ -149,7 +149,7 @@ class DQNAgent(object):
         Returns:
             action (int): an action id
         '''
-        q_values = self.predict(state)
+        q_values = self.predict(state) # NOTE <-- this is the only architecture dependent line
         epsilon = self.epsilons[min(self.total_t, self.epsilon_decay_steps-1)]
         legal_actions = list(state['legal_actions'].keys())
         probs = np.ones(len(legal_actions), dtype=float) * epsilon / len(legal_actions)
@@ -492,6 +492,7 @@ class EstimatorNetwork(nn.Module):
             s  (Tensor): (batch, state_shape)
         '''
         return self.fc_layers(s)
+    
 
 class Memory(object):
     ''' Memory for saving transitions
