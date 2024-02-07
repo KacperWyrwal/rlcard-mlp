@@ -1,5 +1,5 @@
 from rlcard.agents.nfsp_agent import NFSPAgent
-from rlcard.agents.dqn_agent import DQNAgent
+from rlcard.agents.dqn_agent.dqn_agent import DQNAgent
 from rlcard.agents.random_agent import RandomAgent
 from rlcard.utils.pettingzoo_utils import wrap_state
 
