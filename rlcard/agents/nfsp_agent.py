@@ -28,7 +28,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from rlcard.agents.dqn_agent import DQNAgent
+from rlcard.agents.dqn_agent.dqn_agent import DQNAgent
 from rlcard.utils.utils import remove_illegal
 
 Transition = collections.namedtuple('Transition', 'info_state action_probs')
@@ -65,7 +65,9 @@ class NFSPAgent(object):
                  evaluate_with='average_policy',
                  device=None,
                  save_path=None,
-                 save_every=float('inf')):
+                 save_every=float('inf'), 
+                 estimator_network: str = 'mlp',
+            ):
         ''' Initialize the NFSP agent.
 
         Args:
@@ -123,7 +125,7 @@ class NFSPAgent(object):
         self._rl_agent = DQNAgent(q_replay_memory_size, q_replay_memory_init_size, \
             q_update_target_estimator_every, q_discount_factor, q_epsilon_start, q_epsilon_end, \
             q_epsilon_decay_steps, q_batch_size, num_actions, state_shape, q_train_every, q_mlp_layers, \
-            rl_learning_rate, device)
+            rl_learning_rate, device, estimator_network=estimator_network)
 
         # Build the average policy supervised model
         self._build_model()

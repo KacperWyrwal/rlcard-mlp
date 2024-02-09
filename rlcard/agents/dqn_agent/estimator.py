@@ -31,6 +31,8 @@ class Estimator(object):
         # set up Q model and place it in eval mode
         if estimator_network == 'mlp':
             qnet = MLPEstimatorNetwork(num_actions, state_shape, mlp_layers)
+        elif estimator_network == 'transformer':
+            qnet = TransformerEstimatorNetwork(num_actions, state_shape)
         else:
             raise ValueError(f'Unknown estimator_network: {estimator_network}')
         qnet = qnet.to(self.device)
@@ -88,12 +90,15 @@ class Estimator(object):
         y = torch.from_numpy(y).float().to(self.device)
 
         # (batch, state_shape) -> (batch, num_actions)
+        # NOTE (Kacper) This indicates that the state representation should be a sequence for recurrent models
         q_as = self.qnet(s)
 
         # (batch, num_actions) -> (batch, )
+        # NOTE (Kacper) Whereas this probably means that the action should be only the last action in the sequence
         Q = torch.gather(q_as, dim=-1, index=a.unsqueeze(-1)).squeeze(-1)
 
         # update model
+        # NOTE (Kacper) this means that the reward should also be the reward of the last transition in the sequence 
         batch_loss = self.mse_loss(Q, y)
         batch_loss.backward()
         self.optimizer.step()

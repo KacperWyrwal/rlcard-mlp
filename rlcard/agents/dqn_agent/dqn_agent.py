@@ -62,6 +62,7 @@ class DQNAgent(object):
                  save_path=None,
                  save_every=float('inf'),
                  estimator_network: str = 'mlp',
+                 memory_sequence_length: int = 10,
             ):
 
         '''
@@ -121,7 +122,7 @@ class DQNAgent(object):
             state_shape=state_shape,
             mlp_layers=mlp_layers, 
             device=self.device,
-            estimator_network=estimator_network
+            estimator_network=estimator_network,
         )
         self.target_estimator = Estimator(
             num_actions=num_actions, 
@@ -133,7 +134,10 @@ class DQNAgent(object):
         )
 
         # Create replay memory
-        self.memory = Memory(replay_memory_size, batch_size)
+        self.memory = Memory.from_estimator_network(
+            estimator_network=estimator_network, memory_size=replay_memory_size, 
+            batch_size=batch_size, sequence_length=memory_sequence_length
+        )
         
         # Checkpoint saving parameters
         self.save_path = save_path
@@ -218,8 +222,9 @@ class DQNAgent(object):
         state_batch, action_batch, reward_batch, next_state_batch, done_batch, legal_actions_batch = self.memory.sample()
 
         # Calculate best next actions using Q-network (Double DQN)
+        # NOTE (Kacper) the predict_nograd uses the next_state_batch, meaning that it should be a batch of sequences for the recurrent models
         q_values_next = self.q_estimator.predict_nograd(next_state_batch)
-        legal_actions = []
+        legal_actions = [] # NOTE (Kacper) legal actions should probably not be a sequence of legal actions but only the last legal actions for the recurrent models
         for b in range(self.batch_size):
             legal_actions.extend([i + b * self.num_actions for i in legal_actions_batch[b]])
         masked_q_values = -np.inf * np.ones(self.num_actions * self.batch_size, dtype=float)
